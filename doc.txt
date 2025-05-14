@@ -1,0 +1,178 @@
+## 1. Contexte & Objectif
+
+L’objectif est de **redévelopper** une application web basée sur Flask permettant :
+
+1. De **scrap** d’offres d’emploi provenant d’une recherche Google.
+2. D’**extraction** de champs clés (titre, skills, logo, etc.) via une **roadmap JSON** définissant un mapping CSS/XPath.
+3. De classification ML (RandomForest pipeline) pour détecter les offres **frauduleuses**.
+4. De gestion d’utilisateurs (inscription, login, profil), d’historique des offres et d’alertes.
+
+Une IA/équipe de dev utilisera ce cahier des charges pour planifier et implémenter les fonctionnalités.
+
+---
+
+## 2. Architecture Générale
+
+```
+[Utilisateur]
+    ⇅ (HTTP/HTTPS)
+[Flask App] ── (Selenium/requests + BeautifulSoup) ──> [Google + Sites cibles]
+     │
+     ├─ Auth (Flask-Login ou équivalent)
+     ├─ DB (SQLite/MySQL/PostgreSQL)
+     │     └─ Tables : User, Profile, JobOffer, Alert
+     └─ ML Pipeline (joblib) : predict fraud
+```
+
+---
+
+## 3. Composants & Routes
+
+### 3.1 Authentification & Profil
+
+* **`/register`** : formulaire (username, mot de passe) + hash.
+* **`/login`** : vérification hash, création session.
+* **`/profile`** : saisie `job_title`, `location`, `skills`, `languages`, `experience`, `education`.
+
+### 3.2 Scraping & Classification
+
+* **`/search_jobs`** (GET) :
+
+  1. Forme la requête : `"{job_title} jobs in {location}"`.
+  2. **requests.get** vers Google avec headers (User‑Agent, Accept‑Language).
+  3. **BeautifulSoup** pour parser `/url?q=` et extraire 15 URLs.
+  4. Pour chaque URL non déjà en base :
+
+     * requests.get + parse HTML.
+     * Extraction de champs selon `roadmap.json` (**champ `name` + `cssSelector`**).
+     * Nettoyage texte (+ pipeline TF-IDF, StandardScaler, RF).
+     * Prédiction `FRAUDULEUSE` / `LÉGITIME`.
+     * Enregistrement en DB (JobOffer.data JSON, label, probabilité).
+     * Création éventuelle d’une alerte sur `company_name`.
+  5. Affiche `job_results.html`.
+
+### 3.3 Alertes & Historique
+
+* **`/alerts`** : liste des alertes créées (offres frauduleuses détectées).
+* **`JobOffer`** stocke `data` JSON (les champs extraits) et `label` (frauduleuse ou non).
+
+---
+
+## 4. Roadmap JSON (Mapping d’Extraction)
+
+Exemple `roadmap.json` :
+
+```json
+[
+    {
+        "xpath": "//*[@id=\"Sva75c\"]/div[2]/div[2]/div[1]/div[2]/c-wiz[1]/div[1]/c-wiz[1]/c-wiz[1]/c-wiz[1]/div[1]/div[1]/div[1]/div[1]/div[1]/img[1]",
+        "cssSelector": ".vVYCic",
+        "tagName": "IMG",
+        "innerText": "",
+        "name": "Element 1"
+    },
+    {
+        "xpath": "//*[@id=\"Sva75c\"]/div[2]/div[2]/div[1]/div[2]/c-wiz[1]/div[1]/c-wiz[1]/c-wiz[1]/c-wiz[1]/div[1]/div[1]/div[1]/div[1]/div[2]/span[1]/div[1]",
+        "cssSelector": ".UxTHrf",
+        "tagName": "DIV",
+        "innerText": "skiils",
+        "name": "Element 2"
+    },
+    {
+        "xpath": "//*[@id=\"Sva75c\"]/div[2]/div[2]/div[1]/div[2]/c-wiz[1]/div[1]/c-wiz[1]/c-wiz[1]/c-wiz[1]/div[2]/h1[1]",
+        "cssSelector": ".LZAQDf.cS4Vcb-pGL6qe-IRrXtf",
+        "tagName": "H1",
+        "innerText": "Data scientist confirmé/sénior",
+        "name": "Element 3"
+    },
+    {
+        "xpath": "//*[@id=\"Sva75c\"]/div[2]/div[2]/div[1]/div[2]/c-wiz[1]/div[1]/c-wiz[1]/c-wiz[1]/c-wiz[1]/div[2]/div[1]",
+        "cssSelector": ".waQ7qe.cS4Vcb-pGL6qe-ysgGef",
+        "tagName": "DIV",
+        "innerText": "skiils • Paris, France • via F",
+        "name": "Element 4"
+    },
+    {
+        "xpath": "//*[@id=\"Sva75c\"]/div[2]/div[2]/div[1]/div[2]/c-wiz[1]/div[1]/c-wiz[1]/c-wiz[1]/c-wiz[1]/div[2]/div[1]",
+        "cssSelector": ".waQ7qe.cS4Vcb-pGL6qe-ysgGef",
+        "tagName": "DIV",
+        "innerText": "skiils • Paris, France • via F",
+        "name": "Element 5"
+    },
+    {
+        "xpath": "//*[@id=\"Sva75c\"]/div[2]/div[2]/div[1]/div[2]/c-wiz[1]/div[1]/c-wiz[1]/c-wiz[1]/c-wiz[1]/div[2]/div[2]/div[2]/span[2]",
+        "cssSelector": ".RcZtZb",
+        "tagName": "SPAN",
+        "innerText": "€40K a year",
+        "name": "Element 6"
+    },
+    {
+        "xpath": "//*[@id=\"Sva75c\"]/div[2]/div[2]/div[1]/div[2]/c-wiz[1]/div[1]/c-wiz[1]/c-wiz[1]/c-wiz[1]/div[2]/div[2]/div[3]/span[2]",
+        "cssSelector": ".RcZtZb",
+        "tagName": "SPAN",
+        "innerText": "Full-time and Contractor",
+        "name": "Element 7"
+    },
+    {
+        "xpath": "//*[@id=\"Sva75c\"]/div[2]/div[2]/div[1]/div[2]/c-wiz[1]/div[1]/c-wiz[1]/c-wiz[1]/c-wiz[1]/div[6]/div[1]",
+        "cssSelector": ".NgUYpe > div",
+        "tagName": "DIV",
+        "innerText": "Job description\n• Concevoir, d",
+        "name": "Element 8"
+    },
+    {
+        "xpath": "//*[@id=\"Sva75c\"]/div[2]/div[2]/div[1]/div[2]/c-wiz[1]/div[1]/c-wiz[1]/c-wiz[1]/c-wiz[1]/div[6]/div[1]/h3[1]",
+        "cssSelector": ".FkMLeb.cS4Vcb-pGL6qe-IRrXtf",
+        "tagName": "H3",
+        "innerText": "Job description",
+        "name": "Element 9"
+    },
+    {
+        "xpath": "//*[@id=\"Sva75c\"]/div[2]/div[2]/div[1]/div[2]/c-wiz[1]/div[1]/c-wiz[1]/c-wiz[1]/c-wiz[1]/div[6]/div[1]/span[1]",
+        "cssSelector": ".hkXmid",
+        "tagName": "SPAN",
+        "innerText": "• Concevoir, développer et dép",
+        "name": "Element 10"
+    },
+    {
+        "xpath": "//*[@id=\"Sva75c\"]/div[2]/div[2]/div[1]/div[2]/c-wiz[1]/div[1]/c-wiz[1]/c-wiz[1]/c-wiz[1]/div[7]/div[1]/div[1]",
+        "cssSelector": ".nNzjpf-cS4Vcb-PvZLI-QaAxMd-haAclf.",
+        "tagName": "DIV",
+        "innerText": "Show full description",
+        "name": "Element 11"
+    },
+    {
+        "xpath": "//*[@id=\"sjsuid_2\"]/div[1]/div[1]/span[1]/a[1]/div[1]/div[1]",
+        "cssSelector": ".nNzjpf-cS4Vcb-PvZLI-Ueh9jd-haAclf.cS4Vcb-pGL6qe-dMyTib.cS4Vcb-pGL6qe-HrPAd",
+        "tagName": "DIV",
+        "innerText": "Apply on Free-Work",
+        "name": "Element 12"
+    }
+]
+```
+
+
+---
+
+## 5. Pipeline ML
+
+* **Entrée** : DataFrame `{'combined_text': cleaned_text}`.
+* **Étapes** :
+
+  1. `TfidfVectorizer` (unigrammes, stop-words).
+  2. `StandardScaler` sur features numériques.
+  3. Modèle **RandomForestClassifier** entraîné (`rf_pipeline.pkl`).
+* **Sortie** : `predict_proba` + `predict`.
+* **Attention** : veiller à cohérence de versions sklearn (1.3.2 vs 1.5.1).
+
+---
+
+## 6. Points d’Amélioration & Déploiement
+
+1. **Refactor** : utiliser **Flask-Login**, blueprints, services.
+2. **Tests unitaires** : mock requests, BS4, pipeline ML.
+3. **Docker** : conteneuriser Flask + DB.
+4. **CI/CD** : pipeline GitHub Actions pour tests et déploiement.
+5. **Scaling** : remplacer SQLite par Postgres.
+6. **Interface** : ajouter pages React ou Vue pour plus de réactivité.
+7. **Sécurité** : gérer quotas Google, CAPTCHA, user-rate limiting.
