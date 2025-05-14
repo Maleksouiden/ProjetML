@@ -1,0 +1,80 @@
+<!-- templates/job_results.html -->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Résultats de la recherche</title>
+  </head>
+
+  <style>
+    .fraud {
+      background: #ffe6e6;
+      border-left: 4px solid #ff4444;
+    }
+
+    .legit {
+      background: #e6ffe6;
+      border-left: 4px solid #44ff44;
+    }
+
+    .probability {
+      float: right;
+      padding: 3px 8px;
+      border-radius: 12px;
+    }
+
+    .probability.fraud {
+      background: #ff4444;
+      color: white;
+    }
+
+    .probability.legit {
+      background: #44ff44;
+      color: #333;
+    }
+  </style>
+  <body>
+    <h1>Offres correspondant à votre profil</h1>
+    <p><a href="{{ url_for('profile') }}">Modifier mon profil</a></p>
+
+    {% if offers %}
+    <ul>
+      {% for off in offers %}
+      <li>
+        <a href="{{ off.url }}" target="_blank">{{ off.title }}</a><br />
+        Société : {{ off.company or '–' }}<br />
+        Statut : <strong>{{ off.label }}</strong> ({{ off.probability }}%)<br />
+        <p>{{ off.description[:200] }}…</p>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>
+      <em
+        >Aucune offre trouvée pour votre profil, essayez d’élargir votre
+        recherche.</em
+      >
+    </p>
+    {% endif %}
+
+    <div class="offers-container">
+      {% for offer in offers %}
+      <div
+        class="offer-card {{ 'fraud' if offer.label == 'FRAUDULEUSE' else 'legit' }}"
+      >
+        <h3>{{ offer.title }}</h3>
+        <div class="meta">
+          <span class="company">{{ offer.company }}</span>
+          <span
+            class="probability {{ 'fraud' if offer.label == 'FRAUDULEUSE' else 'legit' }}"
+          >
+            {{ offer.probability }}% de risque
+          </span>
+        </div>
+        <p class="description">{{ offer.description[:200] }}...</p>
+        <a href="{{ offer.url }}" target="_blank" class="btn">Voir l'offre</a>
+      </div>
+      {% endfor %}
+    </div>
+  </body>
+</html>

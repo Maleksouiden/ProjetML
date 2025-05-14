@@ -1,0 +1,51 @@
+[
+    {
+        "name": "company_logo",
+        "cssSelector": "img.vVYCic",
+        "xpath": "//img[contains(@class, 'vVYCic')]",
+        "tagName": "IMG",
+        "innerText": ""
+    },
+    {
+        "name": "job_title",
+        "cssSelector": "h1.LZAQDf",
+        "xpath": "//h1[contains(@class, 'LZAQDf')]",
+        "tagName": "H1",
+        "innerText": ""
+    },
+    {
+        "name": "company_info",
+        "cssSelector": "div.waQ7qe",
+        "xpath": "//div[contains(@class, 'waQ7qe')]",
+        "tagName": "DIV",
+        "innerText": ""
+    },
+    {
+        "name": "salary",
+        "cssSelector": "span.RcZtZb:nth-of-type(2)",
+        "xpath": "//span[@class='RcZtZb'][2]",
+        "tagName": "SPAN",
+        "innerText": ""
+    },
+    {
+        "name": "job_type",
+        "cssSelector": "span.RcZtZb:nth-of-type(3)",
+        "xpath": "//span[@class='RcZtZb'][3]",
+        "tagName": "SPAN",
+        "innerText": ""
+    },
+    {
+        "name": "job_description",
+        "cssSelector": "span.hkXmid",
+        "xpath": "//span[contains(@class, 'hkXmid')]",
+        "tagName": "SPAN",
+        "innerText": ""
+    },
+    {
+        "name": "apply_button",
+        "cssSelector": "div.nNzjpf-cS4Vcb-PvZLI-Ueh9jd",
+        "xpath": "//div[contains(@class, 'nNzjpf-cS4Vcb-PvZLI-Ueh9jd')]",
+        "tagName": "DIV",
+        "innerText": ""
+    }
+]

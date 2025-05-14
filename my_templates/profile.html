@@ -1,0 +1,78 @@
+<!-- templates/profile.html -->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Mon Profil</title>
+  </head>
+  <body>
+    <h1>Mon Profil</h1>
+    {% with messages = get_flashed_messages() %} {% if messages %}
+    <ul>
+      {% for msg in messages %}
+      <li>{{ msg }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %} {% endwith %}
+    <form method="post">
+      <label
+        >Intitulé de poste :
+        <input
+          type="text"
+          name="job_title"
+          value="{{ profile.job_title or '' }}"
+          required
+        /> </label
+      ><br />
+
+      <label
+        >Localisation :
+        <input
+          type="text"
+          name="location"
+          value="{{ profile.location or '' }}"
+          required
+        /> </label
+      ><br />
+
+      <label
+        >Expérience :<br />
+        <textarea name="experience" rows="4">
+{{ profile.experience or '' }}</textarea
+        ></label
+      ><br />
+
+      <label
+        >Éducation :
+        <input
+          type="text"
+          name="education"
+          value="{{ profile.education or '' }}"
+        /> </label
+      ><br />
+
+      <label
+        >Compétences :
+        <input
+          type="text"
+          name="skills"
+          value="{{ profile.skills or '' }}"
+          placeholder="Ex : Python, SQL, ML"
+        /> </label
+      ><br />
+
+      <label
+        >Langues :
+        <input
+          type="text"
+          name="languages"
+          value="{{ profile.languages or '' }}"
+          placeholder="Ex : Français, Anglais"
+        /> </label
+      ><br />
+
+      <button type="submit">Enregistrer</button>
+    </form>
+    <p><a href="{{ url_for('search_jobs') }}">Rechercher des offres</a></p>
+  </body>
+</html>

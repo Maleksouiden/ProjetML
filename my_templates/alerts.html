@@ -1,0 +1,20 @@
+<!-- templates/alerts.html -->
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Alertes frauduleuses</title>
+  </head>
+  <body>
+    <h1>Alertes entreprises frauduleuses</h1>
+    <p><a href="{{ url_for('search_jobs') }}">Rechercher à nouveau</a> |</p>
+    <ul>
+      {% for a in alerts %}
+      <li>
+        {{ a.company_name }} — signalée le {{
+        a.timestamp.strftime('%Y-%m-%d%H:%M') }}
+      </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
